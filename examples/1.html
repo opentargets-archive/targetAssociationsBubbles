@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<head>
+    <!-- D3 -->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+    <!-- target Associations -->
+    <link rel="stylesheet" href="../build/cttv.targetAssociations.css" />
+    <script src="../build/cttv.targetAssociations.js"></script>
+
+    <script src="data.js"></script>
+</head>
+
+<body>
+    <div id="mydiv"></div>
+    <script>
+        // var bView = bubblesView()
+        //     .data(bubblesView.node(data1))
+        //     .value("values")
+        //     .key("key")
+        //     .diameter(800);
+        // var ga = targetAssociations({
+        //     "bubblesView": bView,
+        //     "cttvApi" : cttvApi
+        // });
+        var ga = targetAssociations()
+            // .target("ENSG00000157764")
+            .target("ENSG00000182752")
+            .diameter(500);
+            // .colors(['#e7e1ef', '#dd1c77']);
+
+        ga.cttvApi()
+            .prefix("http://test.targetvalidation.org:8008/api/latest/");
+
+        ga(document.getElementById("mydiv"));
+    </script>
+</body>

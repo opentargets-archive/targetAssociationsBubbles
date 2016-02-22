@@ -1,0 +1,40 @@
+{
+  "name": "cttv.targetAssociations",
+  "version": "0.0.0",
+  "description": "CTTV disease associations view for a given target",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "keywords": [
+    "cttv"
+  ],
+  "author": "Miguel Pignatelli",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "browserify": "^9.0.8",
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "gulp-browserify": "^0.5.1",
+    "gulp-gzip": "^1.2.0",
+    "gulp-jshint": "^2.0.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.2.0",
+    "gulp-uglify": "^1.5.1",
+    "gulp-watch": "^4.3.5",
+    "gulp-watchify": "^0.5.0",
+    "mkdirp": "^0.5.1"
+  },
+  "dependencies": {
+    "cttv.api": "0.0.0",
+    "lodash": "^4.2.1",
+    "tnt.api": "^0.1.1",
+    "tnt.tooltip": "^0.1.0",
+    "tnt.tree.node": "^0.1.1",
+    "tnt.utils": "^0.1.1"
+  }
+}
