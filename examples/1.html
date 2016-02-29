@@ -4,8 +4,9 @@
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
     <!-- target Associations -->
-    <link rel="stylesheet" href="../build/cttv.targetAssociations.css" />
-    <script src="../build/cttv.targetAssociations.js"></script>
+    <link rel="stylesheet" href="../build/cttv.targetAssociationsBubbles.css" />
+    <script src="../build/cttv.targetAssociationsBubbles.js"></script>
+    <script src="../node_modules/cttv.api/build/cttv.api.js"></script>
 
     <script src="data.js"></script>
 </head>
@@ -13,6 +14,16 @@
 <body>
     <div id="mydiv"></div>
     <script>
+        var api = cttvApi()
+            .prefix("http://test.targetvalidation.org:8008/api/latest/");
+        var url =  api.url.associations({
+            target: "ENSG00000182752",
+            datastructure: "tree",
+            expandefo: false,
+            facets: false
+        });
+
+
         // var bView = bubblesView()
         //     .data(bubblesView.node(data1))
         //     .value("values")
@@ -25,11 +36,12 @@
         var ga = targetAssociations()
             // .target("ENSG00000157764")
             .target("ENSG00000182752")
-            .diameter(500);
+            .diameter(500)
+            .data(api.call(url));
             // .colors(['#e7e1ef', '#dd1c77']);
 
-        ga.cttvApi()
-            .prefix("http://test.targetvalidation.org:8008/api/latest/");
+        // ga.cttvApi()
+            // .prefix("http://test.targetvalidation.org:8008/api/latest/");
 
         ga(document.getElementById("mydiv"));
     </script>

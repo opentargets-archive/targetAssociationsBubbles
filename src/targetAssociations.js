@@ -8,6 +8,7 @@ var bubbles_tooltips = require("./tooltips.js");
 var menu = require("./menu.js");
 
 var targetAssociations = function () {
+    var tooltips = bubbles_tooltips();
 
     // Default flowerView
     var defaultFlower = flowerView()
@@ -18,15 +19,16 @@ var targetAssociations = function () {
     var config = {
         target : "",
     	diameter : 1000,
-    	cttvApi : cttvApi(),
+    	// cttvApi : cttvApi(),
+        data : undefined, // if passed, should be a promise
         bubblesView: bubblesView(),
         flowerView: defaultFlower,
-        colors: ["#CBDCEA", "#005299"]
+        colors: ["#CBDCEA", "#005299"],
+        linkPrefix: "https://www.targetvalidation.org",
+        tooltips: tooltips,
     };
 
     var currTA;
-
-    var tooltips = bubbles_tooltips();
 
     var node_color = d3.scale.linear();
 
@@ -83,11 +85,10 @@ var targetAssociations = function () {
         // var tree = config.bubblesView.root();
         // config.bubblesView.root(tree);
         // Tooltips
-
         config.bubblesView
             // .on("click", tooltips.click)
-            .on("mouseover", tooltips.mouseover)
-            .on("mouseout", tooltips.mouseout);
+            .on("mouseover", config.tooltips.mouseover)
+            .on("mouseout", config.tooltips.mouseout);
         	// Render
         function manageFocus (node) {
             if (node.property("__focused")) {
@@ -113,7 +114,7 @@ var targetAssociations = function () {
         config.bubblesView.on("click", function (node) {
             // We are in a leave. Just show the tooltip
             if (!node.children(true)) {
-                tooltips.click.call(this, node);
+                config.tooltips.click.call(this, node);
                 return;
             }
             if (config.bubblesView.root().property("_fullyOpened")) {
@@ -158,34 +159,39 @@ var targetAssociations = function () {
 
         tooltips
             .flowerView(config.flowerView)
-            .target(config.target);
+            .target(config.target)
+            .prefix(config.linkPrefix);
 
         var vis = d3.select(div)
             .append("div")
             .style("position", "relative");
 
-        if ((config.data === undefined) && (config.cttvApi !== undefined)) {
-            var api = config.cttvApi;
+        if (config.data === undefined) { // config.data should be a promise
+            var api = cttvApi()
+                .prefix("http://test.targetvalidation.org:8008/api/latest/");
             var url = api.url.associations({
                 target: config.target,
                 datastructure: "tree",
-                expandefo: false
+                expandefo: false,
+                facets: false
             });
-            api.call(url)
+            ga.data(api.call(url));
+        } else {  // We already have a promise to use
+            config.data
                 .then (function (resp) {
                     var data = resp.body.data;
-                    ga.data(data);
+                    setData(data);
                     // processData(data);
                     // config.data = data;
 
                     // menu
                     menu(div, config.bubblesView, ga, currTA);
                     render(vis);
-            });
-        } else {
+                });
+
             // menu
-            menu(div, config.bubblesView, ga, currTA);
-            render(vis);
+            // menu(div, config.bubblesView, ga, currTA);
+            // render(vis);
         }
     };
 
@@ -264,7 +270,7 @@ var targetAssociations = function () {
     //     return processData(d);
     // });
     // Getters / Setters
-    ga.data = function (d) {
+    function setData (d) {
         if (!arguments.length) {
             return config.data;
         }
@@ -287,7 +293,7 @@ var targetAssociations = function () {
         }
         config.bubblesView.root(config.root);
         return this;
-    };
+    }
 
     // ga.target = function (t) {
     //     if (!arguments.length) {
@@ -322,26 +328,28 @@ var targetAssociations = function () {
     //     tooltips.filters(dts);
     //     return;
     // });
-    ga.filters = function (dts) {
-        if (!arguments.length) {
-            return tooltips.filters();
-        }
-        tooltips.filters(dts);
-        return this;
-    };
+    // ga.filters = function (dts) {
+    //     if (!arguments.length) {
+    //         return tooltips.filters();
+    //     }
+    //     tooltips.filters(dts);
+    //     return this;
+    // };
+    ga.filters = tooltips.filters;
 
     // api.getset('names');
     // api.transform('names', function (dts) {
     //     tooltips.names(dts);
     //     return;
     // });
-    ga.names = function (dts) {
-        if (!arguments.length) {
-            return tooltips.names();
-        }
-        tooltips.names(dts);
-        return this;
-    };
+    // ga.names = function (dts) {
+    //     if (!arguments.length) {
+    //         return tooltips.names();
+    //     }
+    //     tooltips.names(dts);
+    //     return this;
+    // };
+    ga.names = tooltips.names;
 
     // Other methods to interact with the bubblesView
     // api.method('update', function (data) {
@@ -352,7 +360,7 @@ var targetAssociations = function () {
     // });
     ga.update = function (u) {
         if ((u.constructor.name !== 'Request') && (u.then === undefined)) {
-            ga.data (u);
+            setData(u);
             config.bubblesView
                 .root(config.root);
             config.bubblesView.update();

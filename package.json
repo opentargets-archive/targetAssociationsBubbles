@@ -1,5 +1,5 @@
 {
-  "name": "cttv.targetAssociations",
+  "name": "cttv.targetAssociationsBubbles",
   "version": "0.0.0",
   "description": "CTTV disease associations view for a given target",
   "main": "index.js",

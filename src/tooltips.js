@@ -11,7 +11,7 @@ var tooltips = function () {
         "names": cttvConsts,
         "flowerView": undefined,
         "target": undefined,
-        "prefix": "https://www.targetvalidation.org"
+        "prefix": ""
     };
 
     var t = {};
