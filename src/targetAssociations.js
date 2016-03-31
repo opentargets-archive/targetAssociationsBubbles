@@ -168,18 +168,18 @@ var targetAssociations = function () {
 
         if (config.data === undefined) { // config.data should be a promise
             var api = cttvApi()
-                .prefix("http://test.targetvalidation.org:8008/api/latest/");
+                .prefix("http://test.targetvalidation.org:8008/api/");
             var url = api.url.associations({
                 target: config.target,
-                datastructure: "tree",
-                expandefo: false,
+                outputstructure: "flat",
+                direct: true,
                 facets: false
             });
             ga.data(api.call(url));
         } else {  // We already have a promise to use
             config.data
                 .then (function (resp) {
-                    var data = resp.body.data;
+                    var data = cttvApi().utils.flat2tree(resp.body);
                     setData(data);
                     // processData(data);
                     // config.data = data;

@@ -30,7 +30,7 @@
     "mkdirp": "^0.5.1"
   },
   "dependencies": {
-    "cttv.api": "0.0.0",
+    "cttv.api": "0.0.1",
     "lodash": "^4.2.1",
     "tnt.api": "^0.1.1",
     "tnt.tooltip": "^0.1.0",
