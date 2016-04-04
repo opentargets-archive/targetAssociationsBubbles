@@ -18,6 +18,7 @@ var targetAssociations = function () {
     // config attrs are exposed as getset in the api
     var config = {
         target : "",
+        size: 1000,
     	diameter : 1000,
     	// cttvApi : cttvApi(),
         data : undefined, // if passed, should be a promise
@@ -26,6 +27,7 @@ var targetAssociations = function () {
         colors: ["#CBDCEA", "#005299"],
         linkPrefix: "https://www.targetvalidation.org",
         tooltips: tooltips,
+        showAll: false
     };
 
     var currTA;
@@ -54,18 +56,18 @@ var targetAssociations = function () {
             .breadcrumbsClick(function (d) {
                 var node = d.link;
                 config.bubblesView.focus(node);
-                    // node.property("__focused", false);
-                    var children = node.children(true);
-                    if (children) {
-                        for (var i=0; i<children.length; i++) {
-                            children[i].apply(function (child) {
-                                if(!child.is_collapsed() && !config.bubblesView.root().property("_fullyOpened")) {
-                                    child.toggle();
-                                    child.property("__focused", false);
-                                }
-                            }, true);
-                        }
+                // node.property("__focused", false);
+                var children = node.children(true);
+                if (children) {
+                    for (var i=0; i<children.length; i++) {
+                        children[i].apply(function (child) {
+                            if(!child.is_collapsed() && !config.bubblesView.root().property("_fullyOpened")) {
+                                child.toggle();
+                                child.property("__focused", false);
+                            }
+                        }, true);
                     }
+                }
                 config.bubblesView.update();
             })
             .diameter(config.diameter)
@@ -119,13 +121,15 @@ var targetAssociations = function () {
             }
             if (config.bubblesView.root().property("_fullyOpened")) {
                 manageFocus(node);
-            } else
-            if (node.parent() && node.children(true)) {
+            } else if (node.parent() && node.children(true)) {
                 if (node.data().depth===1) {
                     console.log("SETTING CURRENT TA TO " + node.property("__disease_name"));
                     currTA = node;
                 }
-                node.toggle();
+
+                if (node.children(true)) {
+                    node.toggle();
+                }
                 manageFocus(node);
                 // if (node.property("__focused")) {
                 //     node.property("__focused", false);
@@ -156,15 +160,17 @@ var targetAssociations = function () {
     }
 
     var ga = function (div) {
-
         tooltips
             .flowerView(config.flowerView)
             .target(config.target)
             .prefix(config.linkPrefix);
 
-        var vis = d3.select(div)
+        var container = d3.select(div)
             .append("div")
             .style("position", "relative");
+
+        var vis = container
+            .append("div");
 
         if (config.data === undefined) { // config.data should be a promise
             var api = cttvApi()
@@ -173,9 +179,11 @@ var targetAssociations = function () {
                 target: config.target,
                 outputstructure: "flat",
                 direct: true,
-                facets: false
+                facets: false,
+                size: config.size
             });
             ga.data(api.call(url));
+            ga(div);
         } else {  // We already have a promise to use
             config.data
                 .then (function (resp) {
@@ -185,7 +193,7 @@ var targetAssociations = function () {
                     // config.data = data;
 
                     // menu
-                    menu(div, config.bubblesView, ga, currTA);
+                    menu(container.node(), config.bubblesView, ga, currTA, config.showAll);
                     render(vis);
                 });
 
@@ -269,6 +277,7 @@ var targetAssociations = function () {
     //     config.root = tnt_node(d);
     //     return processData(d);
     // });
+
     // Getters / Setters
     function setData (d) {
         if (!arguments.length) {
@@ -276,20 +285,23 @@ var targetAssociations = function () {
         }
         //processData(d);
         config.data = processData(d);
-        console.log(config.data);
         //config.data = d;
         config.root = tnt_node(config.data);
         var children = config.root.children();
-        for (var i=0; i<children.length; i++) {
-            var child = children[i];
-            child.toggle();
-            var granChildrenTrees = child.data().childrenTree; // array of nodes
-            for (var k=0; k<granChildrenTrees.length; k++) {
-                var granChildrenTree = tnt_node(granChildrenTrees[k]);
-                granChildrenTree.apply(function (n) {
-                    n.toggle();
-                }, true);
+        if (!config.showAll) {
+            for (var i=0; i<children.length; i++) {
+                var child = children[i];
+                child.toggle();
+                var granChildrenTrees = child.data().childrenTree; // array of nodes
+                for (var k=0; k<granChildrenTrees.length; k++) {
+                    var granChildrenTree = tnt_node(granChildrenTrees[k]);
+                    granChildrenTree.apply(function (n) {
+                        n.toggle();
+                    }, true);
+                }
             }
+        } else {
+            config.data._fullyOpened = true;
         }
         config.bubblesView.root(config.root);
         return this;
@@ -328,28 +340,28 @@ var targetAssociations = function () {
     //     tooltips.filters(dts);
     //     return;
     // });
-    // ga.filters = function (dts) {
-    //     if (!arguments.length) {
-    //         return tooltips.filters();
-    //     }
-    //     tooltips.filters(dts);
-    //     return this;
-    // };
-    ga.filters = tooltips.filters;
+    ga.filters = function (dts) {
+        if (!arguments.length) {
+            return tooltips.filters();
+        }
+        tooltips.filters(dts);
+        return this;
+    };
+    // ga.filters = tooltips.filters;
 
     // api.getset('names');
     // api.transform('names', function (dts) {
     //     tooltips.names(dts);
     //     return;
     // });
-    // ga.names = function (dts) {
-    //     if (!arguments.length) {
-    //         return tooltips.names();
-    //     }
-    //     tooltips.names(dts);
-    //     return this;
-    // };
-    ga.names = tooltips.names;
+    ga.names = function (dts) {
+        if (!arguments.length) {
+            return tooltips.names();
+        }
+        tooltips.names(dts);
+        return this;
+    };
+    // ga.names = tooltips.names;
 
     // Other methods to interact with the bubblesView
     // api.method('update', function (data) {
@@ -363,13 +375,13 @@ var targetAssociations = function () {
             setData(u);
             config.bubblesView
                 .root(config.root);
+            config.bubblesView.focus(config.root);
             config.bubblesView.update();
         } else {
             // assume promise
             u
                 .then (function (resp) {
-                    console.log(resp);
-                    var data = resp.body.data;
+                    var data = cttvApi().utils.flat2tree(resp.body);
                     // recurse
                     ga.update(data);
                 });

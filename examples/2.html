@@ -11,34 +11,33 @@
 </head>
 
 <body>
+    <h1>Hello world</h1>
     <div id="mydiv"></div>
     <script>
-        // var bView = bubblesView()
-        //     .data(bubblesView.node(data1))
-        //     .value("values")
-        //     .key("key")
-        //     .diameter(800);
-        // var ga = targetAssociations({
-        //     "bubblesView": bView,
-        //     "cttvApi" : cttvApi
-        // });
         var ga = targetAssociations()
             .target("ENSG00000157764")
-            .diameter(300);
-
-        var cttvApi =
-        ga.cttvApi()
-            .prefix("http://test.targetvalidation.org:8008/api/latest/");
+            .diameter(800)
+            .showAll(true);
 
         ga(document.getElementById("mydiv"));
 
-        var url = cttvApi.url.associations({
-            target: "ENSG00000012048",
-            datastructure: "tree"
-        });
-        setTimeout(function () {
-            ga.update(cttvApi.call(url));
-        }, 2000);
+        // setTimeout(function () {
+        //     ga.toggleAll();
+        // }, 1000);
+
+        // var cttvApi =
+        // ga.cttvApi()
+        //     .prefix("http://test.targetvalidation.org:8008/api/");
+
+        // var url = cttvApi.url.associations({
+        //     target: "ENSG00000012048",
+        //     outputstructure: "flat",
+        //     direct: true,
+        //     size: 10
+        // });
+        // setTimeout(function () {
+        //     ga.update(cttvApi.call(url));
+        // }, 2000);
 
     </script>
 </body>
