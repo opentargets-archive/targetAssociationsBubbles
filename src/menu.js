@@ -1,7 +1,10 @@
 var tnt_tooltip = require("tnt.tooltip");
 var allCounter = 1;
 var treeCounter = 1;
-var menu = function (container, bubblesView, ta, currTA) {
+var menu = function (container, bubblesView, ta, currTA, showAll) {
+    if (showAll) {
+        allCounter++;
+    }
     d3.select(container)
         .append("div")
         .attr("class", "hamburger-frame")
@@ -52,15 +55,16 @@ var menu = function (container, bubblesView, ta, currTA) {
                 value: (treeCounter%2 ? "Show" : "Hide") + " disease ontology structure",
                 link: function () {
                     // Reset all the opened nodes
-                    //if (currTA && !bubblesView.root().property("_fullyOpened")) {
-                    // if (bubblesView.root().property("_fullyOpened")) {
-                    //     bubblesView.root().apply(function (n) {
-                    //         console.log(n.property("__disease_name"));
-                    //         console.log(n.is_collapsed());
-                    //         if (n.is_collapsed()) {
-                    //             n.toggle();
-                    //         }
-                    //     }, true);
+                    // if (currTA && !bubblesView.root().property("_fullyOpened")) {
+                    //     if (bubblesView.root().property("_fullyOpened")) {
+                    //         bubblesView.root().apply(function (n) {
+                    //             console.log(n.property("__disease_name"));
+                    //             console.log(n.is_collapsed());
+                    //             if (n.is_collapsed()) {
+                    //                 n.toggle();
+                    //             }
+                    //         }, true);
+                    //     }
                     // }
                     if (currTA) {
                         currTA.apply(function (n) {
