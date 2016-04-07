@@ -20,6 +20,7 @@ var targetAssociations = function () {
         target : "",
         size: 1000,
     	diameter : 1000,
+        therapeuticAreas: [],
     	// cttvApi : cttvApi(),
         data : undefined, // if passed, should be a promise
         bubblesView: bubblesView(),
@@ -27,7 +28,10 @@ var targetAssociations = function () {
         colors: ["#CBDCEA", "#005299"],
         linkPrefix: "https://www.targetvalidation.org",
         tooltips: tooltips,
-        showAll: false
+        showAll: false,
+        useFullPath: true,
+        tooltipsOnTA: false,
+        showMenu: true
     };
 
     var currTA;
@@ -45,13 +49,14 @@ var targetAssociations = function () {
         // Set up the bubbles view correctly
         config.bubblesView
             .root(config.root)
-            .value("association_score")
+            .value("__association_score")
             .key("__disease_id")
             .label("__disease_name")
             .stripeInternalNodes(true)
             .index(function (d) {
                 return d.__key;
             })
+            .useFullPath(config.useFullPath)
             .showBreadcrumbs(true)
             .breadcrumbsClick(function (d) {
                 var node = d.link;
@@ -75,10 +80,10 @@ var targetAssociations = function () {
                 if (node.children()) {
                     return "#EFF3FF";
                 }
-                return node_color(node.property("association_score"));
+                return node_color(node.property("__association_score"));
             })
             .labelColor(function (node) {
-                if (node.property("association_score") < 0.5) {
+                if (node.property("__association_score") < 0.5) {
                     return "black";
                 }
                 return "white";
@@ -115,7 +120,7 @@ var targetAssociations = function () {
         }
         config.bubblesView.on("click", function (node) {
             // We are in a leave. Just show the tooltip
-            if (!node.children(true)) {
+            if (!node.children(true) || config.tooltipsOnTA) {
                 config.tooltips.click.call(this, node);
                 return;
             }
@@ -123,7 +128,6 @@ var targetAssociations = function () {
                 manageFocus(node);
             } else if (node.parent() && node.children(true)) {
                 if (node.data().depth===1) {
-                    console.log("SETTING CURRENT TA TO " + node.property("__disease_name"));
                     currTA = node;
                 }
 
@@ -174,7 +178,7 @@ var targetAssociations = function () {
 
         if (config.data === undefined) { // config.data should be a promise
             var api = cttvApi()
-                .prefix("http://test.targetvalidation.org:8008/api/");
+                .prefix("http://test.targetvalidation.org:8111/api/");
             var url = api.url.associations({
                 target: config.target,
                 outputstructure: "flat",
@@ -193,7 +197,9 @@ var targetAssociations = function () {
                     // config.data = data;
 
                     // menu
-                    menu(container.node(), config.bubblesView, ga, currTA, config.showAll);
+                    if (config.showMenu) {
+                        menu(container.node(), config.bubblesView, ga, currTA, config.showAll);
+                    }
                     render(vis);
                 });
 
@@ -206,6 +212,32 @@ var targetAssociations = function () {
     var api = apijs(ga)
         .getset(config);
 
+    // If we are interested only in some TAs, filter out the others
+    function filterOutTAs (data) {
+        var onlyThisTAs;
+        if (config.therapeuticAreas && config.therapeuticAreas.length) {
+            onlyThisTAs = {};
+            for (var e=0; e<config.therapeuticAreas.length; e++) {
+                onlyThisTAs[config.therapeuticAreas[e].toUpperCase()] = true;
+            }
+        } else {
+            return;
+        }
+
+        var newTAs = [];
+
+        for (var i=0; i<data.children.length; i++) {
+            var tA = data.children[i];
+            // If the Therapeutic Area is not in the list of therapeutic areas we want to display, remove it from the data
+            if (onlyThisTAs && (!onlyThisTAs[tA.__id.toUpperCase()])) {
+            } else {
+                newTAs.push(tA);
+            }
+        }
+
+        data.children = newTAs;
+    }
+
     // process data
     // flattening the tree (duplicates?)
     function processData (data) {
@@ -217,23 +249,25 @@ var targetAssociations = function () {
             return data;
         }
 
+
         var therapeuticAreas = data.children;
         for (var i=0; i<therapeuticAreas.length; i++) {
             var tA = therapeuticAreas[i];
+
             var taChildren = tA.children;
             if (!taChildren) {
                 // If the TA doesn't have children just create one for it with the same information as the TA
                 tA.children = [_.clone(tA)];
             }
             tA.__disease_id = tA.disease.id;
-            tA.__disease_name = tA.disease.name;
+            tA.__disease_name = tA.disease.efo_info.label;
 
             // adjust name and toggle the tree structure and save it under the "childrenTree" property
             var ta_node = tnt_node(tA);
             ta_node.apply(function (node) {
                 var d = node.data();
                 d.__disease_id = d.disease.id;
-                d.__disease_name = d.disease.name;
+                d.__disease_name = d.disease.efo_info.label;
                 var key = "";
                 node.upstream(function (node) {
                     key = key + "_" + node.property(function (d) {return d.disease.id;});
@@ -255,6 +289,7 @@ var targetAssociations = function () {
             }
             tA.children = newChildren;
         }
+        console.warn(data);
         return data;
     }
 
@@ -283,9 +318,8 @@ var targetAssociations = function () {
         if (!arguments.length) {
             return config.data;
         }
-        //processData(d);
+        filterOutTAs(d);
         config.data = processData(d);
-        //config.data = d;
         config.root = tnt_node(config.data);
         var children = config.root.children();
         if (!config.showAll) {

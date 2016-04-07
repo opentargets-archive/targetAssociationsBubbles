@@ -51,7 +51,10 @@ var tooltips = function () {
         //     });
         // }
         // obj.header = node.property('label') + " (" + node.property("association_score") + ")";
-        obj.body = "<b>" + node.property(function (n) { return n.disease.name; }) + "</b>" + "<br />" + "Association score: " + node.property("association_score").toFixed(2) + "<br />" + (node.is_collapsed() ? ("Collapsed diseases: " + node.n_hidden()) + "<br />Click to uncollapse": (!node.children() ? "Click to display info": "Click to collapse"));
+        // obj.body = "<b>" + node.property(function (n) { return n.disease.efo_info.label; }) + "</b>" + "<br />" + "Association score: " + node.property("__association_score").toFixed(2) + "<br />" + (node.is_collapsed() ? ("Collapsed diseases: " + node.n_hidden()) + "<br />Click to uncollapse": (!node.children() ? "Click to display info": "Click to collapse"));
+        var children = node.children();
+        obj.body = "<b>" + node.property(function (n) { return n.disease.efo_info.label; }) + "</b>" + "<br />" + "Association score: " + node.property("__association_score").toFixed(2) + (children && children.length ? ("<br />" + children.length + " diseases") : "") + "<br />" + "Click to see details";
+
 
         show_deferred.call(this, obj, ev);
     };
@@ -67,8 +70,8 @@ var tooltips = function () {
         }
 
         var obj = {};
-        var score = node.property("association_score");
-        obj.header = node.property(function (n) { return n.disease.name; }) + " (Association Score: " + score.toFixed(2) + ")";
+        var score = node.property("__association_score");
+        obj.header = node.property(function (n) { return n.disease.efo_info.label; }) + " (Association Score: " + score.toFixed(2) + ")";
         obj.rows = [];
 
         var diseaseProfileLoc = config.prefix + "/disease/" + node.property(function (n) { return n.disease.id; });
@@ -98,18 +101,21 @@ var tooltips = function () {
         //Pass a new fill callback that calls the original one and decorates with flowers
         leafTooltip.fill(function (data) {
             tableFill.call(this, data);
-            var nodeDatatypes = node.property("datatypes");
+            var nodeDatatypes = node.property(function (d) {
+                return d.association_score.datatypes;
+            });
 
             //var datatypes = {};
             var flowerData = [];
             for (var i=0; i<config.names.datatypesOrder.length; i++) {
                 var dkey = config.names.datatypes[config.names.datatypesOrder[i]];
                 var key = config.names.datatypesOrder[i];
+                var datasource = nodeDatatypes[dkey];
 
                 //datatypes[dkey] = lookDatasource(nodeDatatypes, dkey);
-                var datasource = lookDatasource(nodeDatatypes, dkey);
+                // var datasource = lookDatasource(nodeDatatypes, dkey);
                 flowerData.push({
-                    "value": datasource.score,
+                    "value": datasource,
                     "label": config.names.datatypesLabels[key],
                     "active": true, //hasActiveDatatype(names.datatypes[key])
                 });
@@ -126,21 +132,21 @@ var tooltips = function () {
         leafTooltip.call(this, obj);
 
         // This code is duplicated several times now (controllers, directives and components)
-        function lookDatasource (arr, dsName) {
-            for (var i=0; i<arr.length; i++) {
-                var ds = arr[i];
-                if (ds.datatype === dsName) {
-                return {
-                    "count": ds.evidence_count,
-                    "score": ds.association_score
-                };
-                }
-            }
-            return {
-                "count": 0,
-                "score": 0
-            };
-        }
+        // function lookDatasource (arr, dsName) {
+        //     for (var i=0; i<arr.length; i++) {
+        //         var ds = arr[i];
+        //         if (ds.datatype === dsName) {
+        //         return {
+        //             "count": ds.__evidence_count,
+        //             "score": ds.__association_score
+        //         };
+        //         }
+        //     }
+        //     return {
+        //         "count": 0,
+        //         "score": 0
+        //     };
+        // }
 
         // function hasActiveDatatype (checkDatatype) {
         //     for (var datatype in datatypes) {
