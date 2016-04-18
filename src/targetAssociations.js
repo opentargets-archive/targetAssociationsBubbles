@@ -73,7 +73,7 @@ var targetAssociations = function () {
                         }, true);
                     }
                 }
-                config.bubblesView.update();
+                config.bubblesView.update(true);
             })
             .diameter(config.diameter)
             .color(function (node) {
@@ -116,7 +116,7 @@ var targetAssociations = function () {
                 node.property("__focused", true);
                 config.bubblesView.focus(node);
             }
-            config.bubblesView.update();
+            config.bubblesView.update(true);
         }
         config.bubblesView.on("click", function (node) {
             // We are in a leave. Just show the tooltip
@@ -410,7 +410,7 @@ var targetAssociations = function () {
             config.bubblesView
                 .root(config.root);
             config.bubblesView.focus(config.root);
-            config.bubblesView.update();
+            config.bubblesView.update(true);
         } else {
             // assume promise
             u
