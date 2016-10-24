@@ -15,6 +15,8 @@ var targetAssociations = function () {
         .diagonal(160)
         .fontsize(10);
 
+    var node_color = d3.scale.linear();
+
     // config attrs are exposed as getset in the api
     var config = {
         target : "",
@@ -23,7 +25,15 @@ var targetAssociations = function () {
         therapeuticAreas: [],
     	// cttvApi : cttvApi(),
         data : undefined, // if passed, should be a promise
-        bubblesView: bubblesView(),
+        bubblesView: bubblesView()
+            .value("__association_score")
+            .key("__disease_id")
+            .label("__disease_name")
+            .stripeInternalNodes(true)
+            .index(function (d) {
+                return d.__key;
+            }),
+
         flowerView: defaultFlower,
         colors: ["#CBDCEA", "#005299"],
         linkPrefix: "https://www.targetvalidation.org",
@@ -34,28 +44,35 @@ var targetAssociations = function () {
         showMenu: true
     };
 
+    // node color
+    node_color
+        .domain([0,1])
+        .range(config.colors);
+
+    config.bubblesView.color(function (node) {
+            if (node.children()) {
+                return "#EFF3FF";
+            }
+            return node_color(node.property("__association_score"));
+        })
+        .labelColor(function (node) {
+            if (node.property("__association_score") < 0.5) {
+                return "black";
+            }
+            return "white";
+        });
+
+
     var currTA;
 
-    var node_color = d3.scale.linear();
 
     function render (div) {
         var data = config.data;
 
-        // node color
-        node_color
-            .domain([0,1])
-            .range(config.colors);
 
         // Set up the bubbles view correctly
         config.bubblesView
             .root(config.root)
-            .value("__association_score")
-            .key("__disease_id")
-            .label("__disease_name")
-            .stripeInternalNodes(true)
-            .index(function (d) {
-                return d.__key;
-            })
             .useFullPath(config.useFullPath)
             .showBreadcrumbs(true)
             .breadcrumbsClick(function (d) {
@@ -75,19 +92,7 @@ var targetAssociations = function () {
                 }
                 config.bubblesView.update(true);
             })
-            .diameter(config.diameter)
-            .color(function (node) {
-                if (node.children()) {
-                    return "#EFF3FF";
-                }
-                return node_color(node.property("__association_score"));
-            })
-            .labelColor(function (node) {
-                if (node.property("__association_score") < 0.5) {
-                    return "black";
-                }
-                return "white";
-            });
+            .diameter(config.diameter);
 
         // var tree = config.bubblesView.root();
         // config.bubblesView.root(tree);
@@ -131,9 +136,9 @@ var targetAssociations = function () {
                     currTA = node;
                 }
 
-                if (node.children(true)) {
-                    node.toggle();
-                }
+                // if (node.children(true)) {
+                node.toggle();
+                // }
                 manageFocus(node);
                 // if (node.property("__focused")) {
                 //     node.property("__focused", false);
@@ -177,8 +182,8 @@ var targetAssociations = function () {
             .append("div");
 
         if (config.data === undefined) { // config.data should be a promise
-            var api = cttvApi()
-                .prefix("http://test.targetvalidation.org:8111/api/");
+            var api = cttvApi();
+                // .prefix("http://test.targetvalidation.org:8111/api/");
             var url = api.url.associations({
                 target: config.target,
                 outputstructure: "flat",
@@ -270,7 +275,9 @@ var targetAssociations = function () {
                 d.__disease_name = d.disease.efo_info.label;
                 var key = "";
                 node.upstream(function (node) {
-                    key = key + "_" + node.property(function (d) {return d.disease.id;});
+                    key = key + "_" + node.property(function (d) {
+                        return d.disease.id;
+                    });
                 });
                 d.__key = key;
             }, true);
@@ -289,7 +296,7 @@ var targetAssociations = function () {
             }
             tA.children = newChildren;
         }
-        console.warn(data);
+        // console.warn(data);
         return data;
     }
 
