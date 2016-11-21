@@ -31,12 +31,12 @@
   },
   "dependencies": {
     "cttv.api": "0.0.11",
-    "cttv.bubblesView": "0.0.6",
+    "cttv.bubblesView": "0.0.7",
     "cttv.consts": "0.0.0",
     "cttv.flowerView": "0.0.0",
     "lodash": "^4.2.1",
     "tnt.api": "^0.1.1",
-    "tnt.tooltip": "^0.1.0",
+    "tnt.tooltip": "^0.2.0",
     "tnt.tree.node": "^0.1.1",
     "tnt.utils": "^0.1.1"
   }
