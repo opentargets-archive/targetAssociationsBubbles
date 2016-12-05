@@ -15,7 +15,6 @@
   "author": "Miguel Pignatelli",
   "license": "Apache-2.0",
   "devDependencies": {
-    "browserify": "^9.0.8",
     "del": "^2.2.0",
     "gulp": "^3.9.0",
     "gulp-browserify": "^0.5.1",
