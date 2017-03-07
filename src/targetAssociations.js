@@ -44,30 +44,30 @@ var targetAssociations = function () {
         showMenu: true
     };
 
-    // node color
-    node_color
-        .domain([0,1])
-        .range(config.colors);
-
-    config.bubblesView.color(function (node) {
-            if (node.children()) {
-                return "#EFF3FF";
-            }
-            return node_color(node.property("__association_score"));
-        })
-        .labelColor(function (node) {
-            if (node.property("__association_score") < 0.5) {
-                return "black";
-            }
-            return "white";
-        });
-
-
     var currTA;
 
 
     function render (div) {
         var data = config.data;
+
+        // node color
+        node_color
+            .domain([0, 1])
+            .range(config.colors);
+
+        config.bubblesView.color(function (node) {
+            if (node.children()) {
+                return "#EFF3FF";
+            }
+            return node_color(node.property("__association_score"));
+        })
+            .labelColor(function (node) {
+                if (node.property("__association_score") < 0.5) {
+                    return "black";
+                }
+                return "white";
+            });
+
 
 
         // Set up the bubbles view correctly
