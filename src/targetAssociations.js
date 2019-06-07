@@ -23,7 +23,7 @@ var targetAssociations = function () {
         size: 1000,
     	diameter : 1000,
         therapeuticAreas: [],
-    	// cttvApi : cttvApi(),
+    	cttvApi : cttvApi(),
         data : undefined, // if passed, should be a promise
         bubblesView: bubblesView()
             .value("__association_score")
@@ -169,6 +169,7 @@ var targetAssociations = function () {
     }
 
     var ga = function (div) {
+        var api = config.cttvApi;
         tooltips
             .flowerView(config.flowerView)
             .target(config.target)
@@ -182,7 +183,7 @@ var targetAssociations = function () {
             .append("div");
 
         if (config.data === undefined) { // config.data should be a promise
-            var api = cttvApi();
+            // var api = cttvApi();
                 // .prefix("http://test.targetvalidation.org:8111/api/");
             var url = api.url.associations({
                 target: config.target,
@@ -195,18 +196,23 @@ var targetAssociations = function () {
             ga(div);
         } else {  // We already have a promise to use
             config.data
-                .then (function (resp) {
-                    var data = cttvApi().utils.flat2tree(resp.body);
-                    setData(data);
-                    // processData(data);
-                    // config.data = data;
-
-                    // menu
-                    if (config.showMenu) {
-                        menu(container.node(), config.bubblesView, ga, currTA, config.showAll);
+                .then(
+                    function (resp) {
+                        return api.utils.flat2tree(resp.body);
                     }
-                    render(vis);
-                });
+                )
+                .then (
+                    function (resp) {
+                        var data = resp.body.data;
+                        setData(data);
+
+                        // menu
+                        if (config.showMenu) {
+                            menu(container.node(), config.bubblesView, ga, currTA, config.showAll);
+                        }
+                        render(vis);
+                    }
+                );
 
             // menu
             // menu(div, config.bubblesView, ga, currTA);
@@ -296,7 +302,6 @@ var targetAssociations = function () {
             }
             tA.children = newChildren;
         }
-        // console.warn(data);
         return data;
     }
 
@@ -421,11 +426,18 @@ var targetAssociations = function () {
         } else {
             // assume promise
             u
-                .then (function (resp) {
-                    var data = cttvApi().utils.flat2tree(resp.body);
-                    // recurse
-                    ga.update(data);
-                });
+                .then (
+                    function (resp) {
+                        return config.cttvApi.utils.flat2tree(resp.body);
+                    }
+                )
+                .then (
+                    function (resp) {
+                        var data = resp.body.data;
+                        // recurse
+                        ga.update(data);
+                    }
+                );
         }
     };
 

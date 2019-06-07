@@ -110,7 +110,7 @@ var tooltips = function () {
             for (var i=0; i<config.names.datatypesOrder.length; i++) {
                 var dkey = config.names.datatypes[config.names.datatypesOrder[i]];
                 var key = config.names.datatypesOrder[i];
-                var datasource = nodeDatatypes[dkey];
+                var datasource = nodeDatatypes[dkey] || 0;
 
                 //datatypes[dkey] = lookDatasource(nodeDatatypes, dkey);
                 // var datasource = lookDatasource(nodeDatatypes, dkey);
