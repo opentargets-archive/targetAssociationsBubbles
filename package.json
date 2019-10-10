@@ -32,7 +32,7 @@
     "mkdirp": "^0.5.1"
   },
   "dependencies": {
-    "cttv.api": "0.0.21",
+    "cttv.api": "github:opentargets/RestApiJs",
     "cttv.bubblesView": "0.0.5",
     "cttv.consts": "0.0.0",
     "cttv.flowerView": "0.0.0",
